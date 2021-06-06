@@ -1,0 +1,20 @@
+LOCATION=$(realpath $(dirname $BASH_SOURCE))
+docker build -t stelios/ansible $LOCATION
+echo invoke as 'ansible'
+
+[[ -d /home/$USER/.ansible ]] || mkdir /home/$USER/.ansible
+
+function ansible-container {
+ # see https://stackoverflow.com/questions/64857370/using-current-user-when-running-container-in-docker-compose
+  docker run --rm -it --volume $(realpath $(pwd)):$(realpath $(pwd)) \
+    -w $(realpath $(pwd)) \
+    --volume /etc/passwd:/etc/passwd:ro \
+    --volume /etc/group:/etc/group:ro \
+    --volume /home/$USER/.ansible:/home/$USER/.ansible \
+    --user $(id -u):$(id -g) \
+    --network="host" \
+    stelios/ansible "$@"
+}
+function ansible {
+  ansible-container ansible "$@"
+}
