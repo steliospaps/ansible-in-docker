@@ -1,6 +1,6 @@
 LOCATION=$(realpath $(dirname $BASH_SOURCE))
 docker build -t stelios/ansible $LOCATION
-echo invoke as 'ansible'
+echo invoke as 'ansible' and 'ansible-playbook'
 
 [[ -d /home/$USER/.ansible ]] || mkdir /home/$USER/.ansible
 
@@ -16,6 +16,12 @@ function ansible-container {
     --network="host" \
     stelios/ansible "$@"
 }
+
 function ansible {
   ansible-container ansible "$@"
 }
+
+function ansible-playbook {
+  ansible-container ansible-playbook "$@"
+}
+
