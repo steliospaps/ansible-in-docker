@@ -5,6 +5,11 @@ echo invoke as 'ansible' and 'ansible-playbook'
 [[ -d /home/$USER/.ansible ]] || mkdir /home/$USER/.ansible
 
 function ansible-container {
+  local PASSWORD_FILE=""
+  if  [ "$ANSIBLE_VAULT_PASSWORD_FILE"!="" ]
+  then
+    PASSWORD_FILE="--volume $ANSIBLE_VAULT_PASSWORD_FILE:$ANSIBLE_VAULT_PASSWORD_FILE -e ANSIBLE_VAULT_PASSWORD_FILE=$ANSIBLE_VAULT_PASSWORD_FILE"
+  fi
  # see https://stackoverflow.com/questions/64857370/using-current-user-when-running-container-in-docker-compose
   docker run --rm -it --volume $(realpath $(pwd)):$(realpath $(pwd)) \
     -w $(realpath $(pwd)) \
@@ -12,6 +17,8 @@ function ansible-container {
     --volume /etc/group:/etc/group:ro \
     --volume /home/$USER/.ansible:/home/$USER/.ansible \
     --volume /home/$USER/.ssh:/home/$USER/.ssh:ro \
+    -e ANSIBLE_DEBUG=${ANSIBLE_DEBUG:-false} -e ANSIBLE_VERBOSITY=${ANSIBLE_VERBOSITY:-0} \
+    $PASSWORD_FILE \
     --user $(id -u):$(id -g) \
     --network="host" \
     stelios/ansible "$@"
@@ -23,5 +30,8 @@ function ansible {
 
 function ansible-playbook {
   ansible-container ansible-playbook "$@"
+}
+function ansible-vault {
+  ansible-container ansible-vault "$@"
 }
 
